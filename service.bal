@@ -24,19 +24,31 @@ service / on new http:Listener(9090) {
     }
 
     # Add new user
-    # + user - record of type User
     # + return - if successful returns posted user record in response body
-    resource function post users(@http:Payload User user) returns CreatedUser|ConflictingUserIdError {
-        boolean isIdTaken = usersTable.hasKey(user.id);
+    resource function post users(@http:Payload User newUser) returns CreatedUser|ConflictError {
+        // Check if user with given email already exitsts
+        boolean isIdTaken = usersTable.hasKey(newUser.id);
         if isIdTaken {
             return {
                 body: {
-                    errmsg: string `User id ${user.id} already exists `
+                    errmsg: string `User id ${newUser.id} already exists `
                 }
             };
         }
-        usersTable.add(user);
-        return <CreatedUser>{body: user};
+
+        // Check if users with given email already exists
+        foreach User user in usersTable {
+            if user.email == newUser.email {
+                return {
+                    body: {
+                        errmsg: string `Provided email address is already taken!`
+                    }
+                };
+            }
+        }
+
+        usersTable.add(newUser);
+        return <CreatedUser>{body: newUser};
     }
 }
 
@@ -58,7 +70,7 @@ public type CreatedUser record {|
     User body;
 |};
 
-public type ConflictingUserIdError record {|
+public type ConflictError record {|
     *http:Conflict;
     ErrorMsg body;
 |};
