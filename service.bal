@@ -52,6 +52,7 @@ service / on new http:Listener(9090) {
     }
 
     # Select user by id and reset password in user record TODO
+    # + return - message about password reset success/failure
     resource function post users/resetPassword(@http:Payload string userEmail) returns ResetSuccessful|InvalidUserEmail {
         foreach User user in usersTable {
             if user.email == userEmail {
@@ -69,14 +70,51 @@ service / on new http:Listener(9090) {
             }
         };
     }
+
+    # Login user if credentials are valid
+    # + return - message about login succes or details about login failure
+    resource function post auth/login(@http:Payload LoginCredentials loginCredentials) returns LoginSuccessful|LoginFailed {
+        foreach User user in usersTable {
+            // if user.email == loginCredentials.email && user.password == loginCredentials.password {
+            //     return <LoginSuccessful>{
+            //         body: {
+            //             msg: string `Logowanie przebiegło pomyślnie.`
+            //         }
+            //     };
+            // }
+            if user.email == loginCredentials.email {
+                if user.password == loginCredentials.password {
+                    return <LoginSuccessful>{
+                        body: {
+                            msg: string `Logowanie przebiegło pomyślnie.`
+                        }
+                    };
+                }
+                return <LoginFailed>{
+                    body: {
+                        msg: string `Podano nieprawidłowe hasło.`
+                    }
+                };
+            }
+        }
+        return <LoginFailed>{
+            body: {
+                msg: string `Nie istnieje użytkownik o podanym adresie email`
+            }
+        };
+    }
 }
+
 
 public type User record {|
     readonly string id;
+    *LoginCredentials;
+|};
+
+public type LoginCredentials record {|
     string email;
     string password;
 |};
-
 
 public final table<User> key(id) usersTable = table [
     {id: "user_1", email: "one@email.com", password: "one"},
@@ -84,6 +122,7 @@ public final table<User> key(id) usersTable = table [
     {id: "user_3", email: "three@email.com", password: "three"}
 ];
 
+// ---- Response types declaration ----
 public type CreatedUser record {|
     *http:Created;
     User body;
@@ -108,6 +147,17 @@ public type InvalidUserEmail record {|
     *http:BadRequest;
     Msg body;
 |};
+
+public type LoginSuccessful record {|
+    *http:Ok;
+    Msg body;
+|};
+
+public type LoginFailed record {|
+    *http:Unauthorized;
+    Msg body;
+|};
+// ---- Response types declaration ----
 
 public type Msg record {|
     string msg;
