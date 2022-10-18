@@ -16,7 +16,7 @@ service / on new http:Listener(9090) {
         if user is () {
             return {
                 body: {
-                    errmsg: string `Invalid user id`
+                    errmsg: string "Niepoprawne id użytkownika."
                 }
             };
         }
@@ -31,7 +31,7 @@ service / on new http:Listener(9090) {
         if isIdTaken {
             return {
                 body: {
-                    errmsg: string `User id ${newUser.id} already exists `
+                    errmsg: string "Wygenerowane id już istnieje w bazie. Ponów przesłanie formularza."
                 }
             };
         }
@@ -41,7 +41,7 @@ service / on new http:Listener(9090) {
             if user.email == newUser.email {
                 return {
                     body: {
-                        errmsg: string `Provided email address is already taken!`
+                        errmsg: string "Wprowadzony email jest już wykorzystywany przez innego użytkownika."
                     }
                 };
             }
