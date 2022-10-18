@@ -16,7 +16,7 @@ service / on new http:Listener(9090) {
         if user is () {
             return {
                 body: {
-                    errmsg: string "Niepoprawne id użytkownika."
+                    msg: string `Niepoprawne id użytkownika.`
                 }
             };
         }
@@ -31,7 +31,7 @@ service / on new http:Listener(9090) {
         if isIdTaken {
             return {
                 body: {
-                    errmsg: string "Wygenerowane id już istnieje w bazie. Ponów przesłanie formularza."
+                    msg: string `Wygenerowane id już istnieje w bazie. Ponów przesłanie formularza.`
                 }
             };
         }
@@ -41,7 +41,7 @@ service / on new http:Listener(9090) {
             if user.email == newUser.email {
                 return {
                     body: {
-                        errmsg: string "Wprowadzony email jest już wykorzystywany przez innego użytkownika."
+                        msg: string `Wprowadzony email jest już wykorzystywany przez innego użytkownika.`
                     }
                 };
             }
@@ -49,6 +49,25 @@ service / on new http:Listener(9090) {
 
         usersTable.add(newUser);
         return <CreatedUser>{body: newUser};
+    }
+
+    # Select user by id and reset password in user record TODO
+    resource function post users/resetPassword(@http:Payload string userEmail) returns ResetSuccessful|InvalidUserEmail {
+        foreach User user in usersTable {
+            if user.email == userEmail {
+                return <ResetSuccessful>{
+                    body: {
+                        msg: string `Resetowanie hasła przebiegło pomyślnie.`
+                    }
+                };
+            }
+        }
+
+        return <InvalidUserEmail>{
+            body: {
+                msg: string `Użytkownik z podanym adresem email nie istnieje.`
+            }
+        };
     }
 }
 
@@ -72,14 +91,24 @@ public type CreatedUser record {|
 
 public type ConflictError record {|
     *http:Conflict;
-    ErrorMsg body;
+    Msg body;
 |};
 
 public type InvalidUserId record {|
     *http:NotFound;
-    ErrorMsg body;
+    Msg body;
 |};
 
-public type ErrorMsg record {|
-    string errmsg;
+public type ResetSuccessful record {|
+    *http:Accepted;
+    Msg body;
+|};
+
+public type InvalidUserEmail record {|
+    *http:BadRequest;
+    Msg body;
+|};
+
+public type Msg record {|
+    string msg;
 |};
