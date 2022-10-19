@@ -1,5 +1,12 @@
 import ballerina/http;
 
+@http:ServiceConfig {
+    cors: {
+        allowOrigins: ["http://localhost:4200"],
+        maxAge: 84900
+    }
+}
+
 service / on new http:Listener(9090) {
 
     # Get list of all users
@@ -75,13 +82,6 @@ service / on new http:Listener(9090) {
     # + return - message about login succes or details about login failure
     resource function post auth/login(@http:Payload LoginCredentials loginCredentials) returns LoginSuccessful|LoginFailed {
         foreach User user in usersTable {
-            // if user.email == loginCredentials.email && user.password == loginCredentials.password {
-            //     return <LoginSuccessful>{
-            //         body: {
-            //             msg: string `Logowanie przebiegło pomyślnie.`
-            //         }
-            //     };
-            // }
             if user.email == loginCredentials.email {
                 if user.password == loginCredentials.password {
                     return <LoginSuccessful>{
