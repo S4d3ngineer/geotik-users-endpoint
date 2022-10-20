@@ -82,24 +82,18 @@ service / on new http:Listener(9090) {
     # + return - message about login succes or details about login failure
     resource function post auth/login(@http:Payload LoginCredentials loginCredentials) returns LoginSuccessful|LoginFailed {
         foreach User user in usersTable {
-            if user.email == loginCredentials.email {
-                if user.password == loginCredentials.password {
-                    return <LoginSuccessful>{
-                        body: {
-                            msg: string `Logowanie przebiegło pomyślnie.`
-                        }
-                    };
-                }
-                return <LoginFailed>{
+            if (user.email == loginCredentials.email) && (user.password == loginCredentials.password) {
+                return <LoginSuccessful>{
                     body: {
-                        msg: string `Podano nieprawidłowe hasło.`
+                        msg: string `Logowanie przebiegło pomyślnie.`
                     }
                 };
             }
         }
+
         return <LoginFailed>{
             body: {
-                msg: string `Nie istnieje użytkownik o podanym adresie email`
+                msg: string `Podane dane użytkownika są nieprawidłowe.`
             }
         };
     }
