@@ -65,7 +65,7 @@ service / on new http:Listener(9090) {
             if user.email == userEmail {
                 return <ResetSuccessful>{
                     body: {
-                        msg: string `Resetowanie hasła przebiegło pomyślnie.`
+                        msg: string `Email znajduje się w bazie danych.`
                     }
                 };
             }
